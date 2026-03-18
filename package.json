@@ -1,0 +1,17 @@
+{
+  "name": "gigaproto",
+  "version": "1.0.0",
+  "description": "case for hackathon \"PROSTO\"",
+  "license": "MIT",
+  "author": "YonHachi",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "start": "node agents/test.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@mistralai/mistralai": "^1.15.1",
+    "dotenv": "^17.3.1"
+  }
+}
