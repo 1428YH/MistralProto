@@ -1,9 +1,9 @@
 import dotenv from "dotenv";
-dotenv.config()
+dotenv.config();
 
-export function loadKey() {
-    const token = process.env.TOKEN 
-    if (!token) throw new Error("Token is not set .env")
+export async function loadKey() {
+    const key = process.env.MISTRAL_KEY;
+    if (!key) throw new Error("API_KEY_ERROR");
 
-    return token
+    return key
 }
