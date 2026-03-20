@@ -6,11 +6,11 @@ import { runSynthesizer } from "../agents/synthesizer.js";
 export async function runPipeline(userMessage: string) {
     try {
         const analyst = await runAnalyst(userMessage);
-        console.log("A:", analyst);
+        console.log("Analyst ✅");
         const hypothesizer = await runHypothesizer(analyst);
-        console.log("B:", hypothesizer);
+        console.log("Hypothesizer ✅");
         const architect = await runArchitect(hypothesizer);
-        console.log("C:", architect);
+        console.log("Architect ✅");
         const synthesizer = await runSynthesizer(
             JSON.stringify({
                 analyst,
