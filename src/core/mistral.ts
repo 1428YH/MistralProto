@@ -19,9 +19,12 @@ export async function callAgent(a:callAgentOptions) {
                 { role: "user", content: a.userMessage}
             ]
         })
-
-        return response
-    } catch {
+        const content = response.choices[0]?.message.content 
+        if (!content) throw new Error("Empty response")
+        
+        return content as string 
+    } catch(error){
+        console.error(`Mistral error: ${error}`)
         throw new Error("MISTRAL_ERROR_REQUEST")
     }
 }
