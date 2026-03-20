@@ -5,7 +5,7 @@ import { safeParse } from "../utilities/parse.js";
 export async function runHypothesizer(analyst: any) {
     try {
         const result = await callAgent({
-            userMessage: analyst, 
+            userMessage: JSON.stringify(analyst), 
             systemPrompt: oneLine`
             Ты — старший бизнес-аналитик в технологическом стартапе.
 
