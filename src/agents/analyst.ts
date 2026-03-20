@@ -1,4 +1,3 @@
-import { oneLine } from "common-tags"
 import { callAgent } from "../core/mistral.js"
 import { safeParse } from "../utilities/parse.js"
 import { ANALYST_PROMPT } from "../prompts/analyst.prompt.js"
@@ -9,7 +8,8 @@ export async function runAnalyst(message:string) {
             userMessage: message,
             systemPrompt: ANALYST_PROMPT,
             temperature: 0.2
-        })
+        });
+
         return await safeParse(result)
     } catch(error) {
         console.error(`Analyst error: ${error}`)
