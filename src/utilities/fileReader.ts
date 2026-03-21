@@ -1,9 +1,10 @@
 import { readFile } from "fs/promises";
-import { resolve } from "path";
+import { join } from "path";
 import { PDFParse } from "pdf-parse";
 import mammoth from "mammoth";
 
 const SUPPORTED_EXT = [".pdf", ".docx", ".txt"] as const;
+export const INPUT_DIR = "input";
 
 export type SupportedFormat = (typeof SUPPORTED_EXT)[number];
 
@@ -18,14 +19,19 @@ export function getFormat(path: string): SupportedFormat | null {
     return ext ?? null;
 }
 
-export async function readFileContent(filePath: string): Promise<string | null> {
-    const format = getFormat(filePath);
+export function getInputFilePath(filename: string): string {
+    const name = filename.trim().replace(/^[/\\]+/, "").split(/[/\\]/).pop() ?? filename.trim();
+    return join(process.cwd(), INPUT_DIR, name);
+}
+
+export async function readFileContent(filename: string): Promise<string | null> {
+    const format = getFormat(filename);
     if (!format) {
         console.error(`Unsupported format. Supported: ${SUPPORTED_EXT.join(", ")}`);
         return null;
     }
 
-    const resolved = resolve(filePath.trim());
+    const resolved = getInputFilePath(filename);
 
     try {
         if (format === ".txt") {
@@ -53,7 +59,7 @@ export async function readFileContent(filePath: string): Promise<string | null> 
         return null;
     } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
-        console.error(`Failed to read file "${filePath}": ${msg}`);
+        console.error(`Failed to read file "${resolved}": ${msg}`);
         return null;
     }
 }
