@@ -20,7 +20,10 @@ function printReport(report: { critical?: string[]; warnings?: string[]; info?: 
 }
 
 async function runWithRetry(userMessage: string, spec?: unknown, retryContext?: UIGeneratorRetryContext) {
-    const result = await runPipeline(userMessage, { spec, retryContext });
+    const result = await runPipeline(userMessage, {
+        spec,
+        ...(retryContext !== undefined && { retryContext })
+    });
     if (!result) return null;
 
     if (result.codeReview.status === "fail" && result.codeReview.report) {
@@ -36,8 +39,8 @@ async function runWithRetry(userMessage: string, spec?: unknown, retryContext?: 
                     warnings: report.warnings ?? [],
                     info: report.info ?? []
                 },
-                changes: result.codeReview.changes,
-                userContext: userContext?.trim() || undefined
+                ...(result.codeReview.changes !== undefined && { changes: result.codeReview.changes }),
+                ...(userContext?.trim() && { userContext: userContext.trim() })
             });
         }
     } else if (result.codeReview.status === "pass") {
@@ -59,7 +62,7 @@ async function loop() {
     } catch (error) {
         console.error("Error:", error);
     }
-    loop();
+    await loop();
 }
 
-loop();
+await loop();
