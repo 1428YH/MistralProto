@@ -15,6 +15,8 @@ export interface CallAgentOptions {
     userMessage: string;
     systemPrompt: string;
     temperature: number;
+    /** Max tokens in response; default 8192. Use 32768+ for Code Review (outputs full HTML). */
+    maxTokens?: number;
 }
 
 export async function callAgent(opts: CallAgentOptions): Promise<string> {
@@ -23,10 +25,14 @@ export async function callAgent(opts: CallAgentOptions): Promise<string> {
     let lastError: unknown;
 
     for (let attempt = 0; attempt <= config.apiRetries; attempt++) {
+        if (attempt > 0) {
+            console.log(`    [Mistral] Retry #${attempt}...`);
+        }
         try {
             const response = await client.chat.complete({
                 model: config.mistralModel,
                 temperature: opts.temperature,
+                maxTokens: opts.maxTokens ?? 8192,
                 messages: [
                     { role: "system", content: opts.systemPrompt },
                     { role: "user", content: opts.userMessage },
@@ -34,6 +40,7 @@ export async function callAgent(opts: CallAgentOptions): Promise<string> {
             });
             const content = response.choices[0]?.message?.content;
             if (!content) throw new Error("Empty response");
+            if (attempt > 0) console.log("    [Mistral] ✓ Retry succeeded");
             return content as string;
         } catch (err) {
             lastError = err;

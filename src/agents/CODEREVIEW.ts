@@ -15,16 +15,29 @@ function buildUserMessage(html: string, context: CodeReviewContext): string {
 }
 
 export async function runCODEREVIEW(html: string, context: CodeReviewContext): Promise<CodeReviewResult | false> {
+    console.log("  [CodeReview] Calling Mistral API (temperature: 0.3)...");
+    const t0 = Date.now();
     try {
         const result = await callAgent({
             userMessage: buildUserMessage(html, context),
             systemPrompt: CODEREVIEW_PROMPT,
-            temperature: 0.3
-        })
+            temperature: 0.3,
+            maxTokens: 65536,
+        });
 
-        return safeParse<CodeReviewResult>(result)
-    } catch(error) {
-        console.error("CODEREVIEW error:", error)
-        return false
+        console.log("  [CodeReview] Response received, parsing JSON...");
+        const parsed = safeParse<CodeReviewResult>(result);
+        if (parsed) {
+            const status = parsed.status ?? "?";
+            const critical = parsed.report?.critical?.length ?? 0;
+            const warnings = parsed.report?.warnings?.length ?? 0;
+            console.log("  [CodeReview] ✓", status, `— critical: ${critical}, warnings: ${warnings}`, `(${Date.now() - t0}ms)`);
+        } else {
+            console.log("  [CodeReview] ✗ Failed to parse response", `(${Date.now() - t0}ms)`);
+        }
+        return parsed ?? false;
+    } catch (error) {
+        console.error("  [CodeReview] Error:", error);
+        return false;
     }
 }

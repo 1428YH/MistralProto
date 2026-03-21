@@ -60,4 +60,6 @@ export interface UIGeneratorRetryContext {
     report: CodeReviewReport;
     changes?: Array<{ type: string; description: string }>;
     userContext?: string;
+    /** Corrected HTML from Code Review — use as base for incremental fix when possible */
+    currentHtml?: string;
 }
