@@ -1,9 +1,9 @@
 import dotenv from "dotenv";
 dotenv.config();
+const key = process.env.MISTRAL_KEY;
 
 export async function loadKey() {
-    const key = process.env.MISTRAL_KEY;
-    if (!key) throw new Error("API_KEY_ERROR");
+  if (!key) throw new Error("API_KEY_ERROR");
 
-    return key
-}
+  return key;
+};

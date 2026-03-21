@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>ИИ для решения БТ</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      background: #f9fafb;
+    }
+
+    .container {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .chats {
+      width: 15%;
+      min-width: 200px;
+      max-width: 200px;
+      background: #f8fafc;
+      border-right: 1px solid #e2e8f0;
+      overflow-y: auto;
+    }
+
+    .preview {
+      width: 25%;
+      min-width: 500px;
+      max-width: 500px;
+      background: #f8fafc;
+      border-left: 1px solid #e2e8f0;
+      overflow-y: auto;
+    }
+
+    .work-with-ai {
+      flex: 1;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      min-width: 0;
+      height: 100%;
+    }
+
+    .mini-container {
+      padding: 10px;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .start-message {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+      color: #444;
+      font-weight: bold;
+      font-size: 30px;
+    }
+
+    .input-area {
+      position: sticky;
+      bottom: 0;
+      width: 100%;
+      background: #fff;
+      border-top: 1px solid #e5e7eb;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .message-input {
+      flex: 1;
+      padding: 14px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .send-button {
+      width: 50px;
+      height: 50px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .send-button::before {
+      content: "➤";
+      font-size: 30px;
+    }
+
+    .file-button {
+      width: 50px;
+      height: 50px;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container-title {
+      margin-bottom: 6px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    button {
+      background-color: white;
+      border: 2px solid #e2e8f0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="chats mini-container">
+      <div class="container-title">
+        <h3>Чаты</h3>
+      </div>
+    </div>
+
+    <div class="work-with-ai mini-container">
+      <div class="chat-messages">
+        <p class="start-message">Привет! Что будем делать сегодня?</p>
+      </div>
+
+      <div class="input-area">
+        <input type="text" placeholder="Напиши сообщение..." class="message-input" autocomplete="off">
+        <button class="file-button" aria-label="Выбрать файл">
+          <img src="./icons/file.png" width="22px" height="22px">
+        </button>
+        <button class="send-button" aria-label="Отправить"></button>
+      </div>
+    </div>
+
+    <div class="preview mini-container">
+      <div class="container-title">
+        <h3>Предпросмотр</h3>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

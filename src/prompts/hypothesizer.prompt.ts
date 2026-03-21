@@ -27,4 +27,4 @@ export const HYPOTHESIZER_PROMPT = oneLine`
         }
         ]
     }
-`
+`;

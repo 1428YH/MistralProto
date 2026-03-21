@@ -19,4 +19,4 @@ Rules:
 - Strictly follow the structure
 - Do NOT add new sections
 - Do NOT invent information outside the input data
-`
+`;
