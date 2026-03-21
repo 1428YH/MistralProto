@@ -15,7 +15,6 @@ export interface CallAgentOptions {
     userMessage: string;
     systemPrompt: string;
     temperature: number;
-    /** Max tokens in response; default 8192. Use 32768+ for Code Review (outputs full HTML). */
     maxTokens?: number;
 }
 
