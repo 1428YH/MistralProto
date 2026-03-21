@@ -4,6 +4,7 @@ import PromptSync from "prompt-sync";
 import { runPipeline } from "./core/pipeline.js";
 import { runServer, waitForServerStop } from "./core/server.js";
 import type { BRSpec, UIGeneratorRetryContext } from "./types.js";
+import { isSupportedFile, readFileContent } from "./utilities/fileReader.js";
 
 const prompt = PromptSync();
 
@@ -12,6 +13,7 @@ const MAX_QUERY_LEN = 5000;
 const OUTPUT_DIR = "output";
 
 console.log("Welcome to the Mistral prototype! Enter your query or type 'exit' to quit.");
+console.log("Supported file formats: .txt, .pdf, .docx — enter a file path to use its content.");
 console.log("Commands: exit — quit, save — save last result to file");
 
 function printReport(report: { critical?: string[]; warnings?: string[]; info?: string[] } | undefined) {
@@ -25,6 +27,18 @@ function printReport(report: { critical?: string[]; warnings?: string[]; info?: 
     if (report.info?.length) {
         console.log("ℹ️  Info:", report.info.join("; "));
     }
+}
+
+async function resolveUserInput(input: string): Promise<string> {
+    const trimmed = input.trim();
+    if (isSupportedFile(trimmed)) {
+        const content = await readFileContent(trimmed);
+        if (content) {
+            console.log(`[File] Loaded ${trimmed}, ${content.length} chars`);
+            return content;
+        }
+    }
+    return trimmed;
 }
 
 function validateInput(msg: string): { ok: boolean; error?: string } {
@@ -137,14 +151,15 @@ async function main() {
             continue;
         }
 
-        const validation = validateInput(trimmed);
+        const resolved = await resolveUserInput(trimmed);
+        const validation = validateInput(resolved);
         if (!validation.ok) {
             console.log(validation.error);
             continue;
         }
 
         try {
-            const result = await runWithRetry(trimmed);
+            const result = await runWithRetry(resolved);
             if (result) {
                 lastResult = { html: result.html, spec: result.spec };
                 const saveChoice = prompt("\nSave to file? (y/n): ");
