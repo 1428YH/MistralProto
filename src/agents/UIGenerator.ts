@@ -1,8 +1,8 @@
 import { callAgent } from "../core/mistral.js";
 import { UI_GENERATOR_PROMPT } from "../prompts/UIGenerator.prompt.js";
-import type { UIGeneratorRetryContext } from "../types.js";
+import type { BRSpec, UIGeneratorRetryContext } from "../types.js";
 
-function buildUserMessage(spec: unknown, retryContext?: UIGeneratorRetryContext): string {
+function buildUserMessage(spec: BRSpec, retryContext?: UIGeneratorRetryContext): string {
     const base = { specification: spec }
     if (retryContext) {
         Object.assign(base, { retry_context: retryContext })
@@ -10,7 +10,10 @@ function buildUserMessage(spec: unknown, retryContext?: UIGeneratorRetryContext)
     return JSON.stringify(base, null, 2)
 }
 
-export async function runUIGenerator(spec: unknown, retryContext?: UIGeneratorRetryContext) {
+export async function runUIGenerator(
+    spec: BRSpec,
+    retryContext?: UIGeneratorRetryContext
+): Promise<string | false> {
     try {
         const result = await callAgent({
             userMessage: buildUserMessage(spec, retryContext),

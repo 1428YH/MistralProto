@@ -1,6 +1,6 @@
 import PromptSync from "prompt-sync";
 import { runPipeline } from "./core/pipeline.js";
-import type { UIGeneratorRetryContext } from "./types.js";
+import type { BRSpec, UIGeneratorRetryContext } from "./types.js";
 
 const prompt = PromptSync();
 
@@ -19,50 +19,66 @@ function printReport(report: { critical?: string[]; warnings?: string[]; info?: 
     }
 }
 
-async function runWithRetry(userMessage: string, spec?: unknown, retryContext?: UIGeneratorRetryContext) {
-    const result = await runPipeline(userMessage, {
-        spec,
-        ...(retryContext !== undefined && { retryContext })
-    });
-    if (!result) return null;
+async function runWithRetry(
+    userMessage: string,
+    initialSpec?: BRSpec,
+    initialRetryContext?: UIGeneratorRetryContext
+) {
+    let spec: BRSpec | undefined = initialSpec;
+    let retryContext: UIGeneratorRetryContext | undefined = initialRetryContext;
 
-    if (result.codeReview.status === "fail" && result.codeReview.report) {
-        console.log("\n--- Code Review не прошёл ---");
-        printReport(result.codeReview.report);
-        const answer = prompt("\nДобавить уточнения и повторить? (да/нет): ");
-        if (answer?.toLowerCase().startsWith("д") || answer?.toLowerCase() === "y" || answer?.toLowerCase() === "yes") {
-            const userContext = prompt("Введите дополнительный контекст или уточнения: ");
-            const report = result.codeReview.report;
-            return runWithRetry(userMessage, result.spec, {
-                report: {
-                    critical: report.critical ?? [],
-                    warnings: report.warnings ?? [],
-                    info: report.info ?? []
-                },
-                ...(result.codeReview.changes !== undefined && { changes: result.codeReview.changes }),
-                ...(userContext?.trim() && { userContext: userContext.trim() })
-            });
+    while (true) {
+        const result = await runPipeline(userMessage, {
+            ...(spec !== undefined && { spec }),
+            ...(retryContext !== undefined && { retryContext }),
+        });
+        if (!result) return null;
+
+        if (result.codeReview.status === "fail" && result.codeReview.report) {
+            console.log("\n--- Code Review не прошёл ---");
+            printReport(result.codeReview.report);
+            const answer = prompt("\nДобавить уточнения и повторить? (да/нет): ");
+            if (
+                answer?.toLowerCase().startsWith("д") ||
+                answer?.toLowerCase() === "y" ||
+                answer?.toLowerCase() === "yes"
+            ) {
+                const userContext = prompt("Введите дополнительный контекст или уточнения: ");
+                const report = result.codeReview.report;
+                spec = result.spec;
+                retryContext = {
+                    report: {
+                        critical: report.critical ?? [],
+                        warnings: report.warnings ?? [],
+                        info: report.info ?? [],
+                    },
+                    ...(result.codeReview.changes !== undefined && { changes: result.codeReview.changes }),
+                    ...(userContext?.trim() && { userContext: userContext.trim() }),
+                };
+                continue;
+            }
+        } else if (result.codeReview.status === "pass") {
+            console.log("Pipeline completed ✅");
         }
-    } else if (result.codeReview.status === "pass") {
-        console.log("Pipeline completed ✅");
-    }
 
-    return result;
+        return result;
+    }
 }
 
-async function loop() {
-    const message = prompt("Enter your query: ");
-    if (message === "exit") {
-        console.log("Goodbye!");
-        process.exit(0);
+async function main() {
+    while (true) {
+        const message = prompt("Enter your query: ");
+        if (message === "exit") {
+            console.log("Goodbye!");
+            process.exit(0);
+        }
+        try {
+            const result = await runWithRetry(message);
+            if (result) console.log(result);
+        } catch (error) {
+            console.error("Error:", error);
+        }
     }
-    try {
-        const result = await runWithRetry(message);
-        if (result) console.log(result);
-    } catch (error) {
-        console.error("Error:", error);
-    }
-    await loop();
 }
 
-await loop();
+await main();

@@ -25,9 +25,5 @@ Produce exactly one UTF-8 HTML file. It must:
 - Visual identity: the design must feel intentional and cohesive — not a generic template.
 - Code quality: clean indentation, no inline styles except dynamic JS-set values, no dead code.
 
-Begin the file with <!DOCTYPE html> and end with </html>. Output nothing else.
-
-
-Output nothing outside the JSON object.
-- strictly JSON and no Markdown
+Begin the file with <!DOCTYPE html> and end with </html>. Output ONLY the raw HTML file — no markdown fences, no JSON, no explanations before or after.
 `
