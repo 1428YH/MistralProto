@@ -11,7 +11,7 @@ export async function runUIGenerator(BRparser: any) {
 
         return result
     } catch(error) {
-        console.error("UIGeneratro error:", error)
+        console.error("UIGenerator error:", error)
         return false
     }
 }
