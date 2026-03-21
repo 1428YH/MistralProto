@@ -8,7 +8,7 @@
   "main": "main.js",
   "scripts": {
     "start": "tsx src/main.ts",
-    "test": "tsx src/tests/BRparser.test.ts"
+    "test": "tsx src/tests/pipeline.test.ts"
   },
   "dependencies": {
     "@mistralai/mistralai": "^1.15.1",
