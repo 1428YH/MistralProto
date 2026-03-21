@@ -1,7 +1,9 @@
-export function safeParse<T = unknown>(json: string): T {
+export function safeParse<T = unknown>(json: string): T | false {
+    const cleaned = json.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim();
     try {
-        return JSON.parse(json) as T
+        return JSON.parse(cleaned) as T;
     } catch {
-        throw new Error("INVALID_JSON_FROM_AGENT")
+        console.error("Parse failed on:", cleaned.slice(0, 200));
+        return false;
     }
 }
