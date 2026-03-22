@@ -24,7 +24,7 @@ import { isBRSpec } from "./types.js";
 
 const MIN_QUERY_LEN = 10;
 const MAX_QUERY_LEN = 5000;
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024; 
 const OUTPUT_DIR = "output";
 
 const upload = multer({

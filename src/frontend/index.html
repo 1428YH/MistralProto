@@ -4,13 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ИИ для решения БТ</title>
+  <title>Mistral Proto</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       height: 100vh;
@@ -41,9 +37,7 @@
       flex-direction: column;
       position: relative;
       transition: all 0.3s ease;
-      box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.25),
-        0 0 20px rgba(255, 255, 255, 0.08),
-        0 0 40px rgba(255, 255, 255, 0.05);
+      box-shadow: inset 0 0 6px rgba(255,255,255,0.25), 0 0 20px rgba(255,255,255,0.08), 0 0 40px rgba(255,255,255,0.05);
     }
 
     .container::after {
@@ -59,22 +53,16 @@
     .container::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
+      top: 0; left: 0; right: 0;
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
     }
 
-    .menu {
-      color: white;
-      flex: 0 0 220px;
-    }
+    .menu { color: white; flex: 0 0 220px; }
 
-    .preview {
-      display: none;
-      flex: 0 0 520px;
-    }
+    /* Desktop preview — панель сбоку */
+    .preview { display: none; flex: 0 0 520px; }
+    .preview.visible { display: flex; }
 
     .work-with-ai {
       flex: 1;
@@ -90,6 +78,9 @@
       padding-bottom: 8px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.15);
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
     .chat-messages {
@@ -134,41 +125,28 @@
       transition: all 0.2s ease;
     }
 
-    .message-input::placeholder {
-      color: rgba(255, 255, 255, 0.5);
-    }
+    .message-input::placeholder { color: rgba(255, 255, 255, 0.5); }
+    .message-input:focus { border-color: rgba(255, 255, 255, 0.5); }
+    .message-input:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .message-input:focus {
-      border-color: rgba(255, 255, 255, 0.5);
-    }
-
-    .send-button,
-    .file-button {
-      width: 52px;
-      height: 52px;
+    .send-button, .file-button {
+      width: 52px; height: 52px;
       border-radius: 14px;
       background: rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.3);
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       transition: all 0.2s ease;
       flex-shrink: 0;
     }
 
-    .send-button:hover,
-    .file-button:hover {
-      background: rgba(255, 255, 255, 0.25);
-      transform: translateY(-1px);
-    }
+    .send-button:hover, .file-button:hover { background: rgba(255,255,255,0.25); transform: translateY(-1px); }
+    .send-button:disabled, .file-button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .send-button::before { content: "➤"; font-size: 28px; color: rgba(255,255,255,0.9); }
+    .send-button.loading::before { content: "⏳"; font-size: 22px; animation: spin 1.2s linear infinite; }
 
-    .send-button::before {
-      content: "➤";
-      font-size: 28px;
-      color: rgba(255, 255, 255, 0.9);
-    }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
     .message {
       max-width: 75%;
@@ -181,274 +159,174 @@
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
-    .user-message {
-      align-self: flex-end;
-      color: #fff;
-      border-bottom-right-radius: 8px;
-    }
+    .user-message { align-self: flex-end; color: #fff; border-bottom-right-radius: 8px; }
+    .ai-message { align-self: flex-start; background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.95); border-bottom-left-radius: 8px; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+    .ai-message.error-message { background: rgba(255,80,80,0.2); border-color: rgba(255,80,80,0.4); }
 
-    .ai-message {
+    .typing-indicator {
       align-self: flex-start;
-      background: rgba(255, 255, 255, 0.15);
-      color: rgba(255, 255, 255, 0.95);
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 20px;
       border-bottom-left-radius: 8px;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      padding: 14px 18px;
+      display: flex; gap: 5px; align-items: center;
+      animation: fadeInUp 0.3s ease-out;
     }
 
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(12px);
-      }
+    .typing-indicator span:not(.typing-label) { width: 7px; height: 7px; background: rgba(255,255,255,0.6); border-radius: 50%; animation: bounce 1.2s infinite; flex-shrink: 0; }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+    .typing-indicator .typing-label { font-size: 13px; opacity: 0.75; color: rgba(255,255,255,0.9); line-height: 1; white-space: nowrap; margin-left: 4px; }
 
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
+    @keyframes bounce { 0%,60%,100% { transform: translateY(0); opacity:0.6; } 30% { transform: translateY(-6px); opacity:1; } }
+    @keyframes fadeInUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
 
-    .chat-messages::-webkit-scrollbar {
-      width: 4px;
-    }
+    .chat-messages::-webkit-scrollbar { width: 4px; }
+    .chat-messages::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 2px; }
+    .chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
 
-    .chat-messages::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 2px;
-    }
-
-    .chat-messages::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 2px;
-    }
-
-    .header {
-      display: none;
-      color: rgb(186, 186, 186);
-    }
+    .header { display: none; color: rgb(186,186,186); }
 
     @media(max-width:1250px) {
-      .root {
-        flex-direction: column;
-        gap: 8px;
-        padding: 8px;
-        height: calc(100vh - 16px);
-        width: calc(100vw - 16px);
-      }
-
-      .menu,
-      .preview {
-        flex: none;
-        height: 120px;
-        display: none;
-      }
-
-      .work-with-ai {
-        flex: 1;
-        height: auto;
-        min-height: 0;
-      }
-
-      .container {
-        padding: 12px;
-        border-radius: 20px;
-      }
-
-      .container-title {
-        font-size: 14px;
-        margin-bottom: 8px;
-      }
-
-      .menu .chat-messages,
-      .preview .chat-messages {
-        display: none;
-      }
-
-      .message-input {
-        padding: 12px 16px;
-        font-size: 16px;
-      }
-
-      .send-button,
-      .file-button {
-        width: 48px;
-        height: 48px;
-      }
-
-      .send-button::before {
-        font-size: 24px;
-      }
-
-      .header {
-        display: -webkit-box;
-        gap: 12px;
-        padding: 10px 16px;
-      }
-
-      .menu-icon {
-        font-size: 35px;
-        cursor: pointer;
-        margin-top: -6px;
-      }
-
-      .header-title {
-        position: relative;
-        font-size: 20px;
-        font-weight: 600;
-        margin-top: 8px;
-        margin-left: 16px;
-      }
-
-      .header-title::before {
-        content: "";
-        position: absolute;
-        left: -10px;
-        top: 37%;
-        transform: translateY(-50%);
-        width: 2px;
-        height: 60%;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 2px;
-      }
+      .root { flex-direction: column; gap: 8px; padding: 8px; height: calc(100vh - 16px); width: calc(100vw - 16px); }
+      .menu, .preview { flex: none; height: 120px; display: none; }
+      /* На мобиле боковую панель убираем полностью — используем модалку */
+      .preview.visible { display: none !important; }
+      .work-with-ai { flex: 1; height: auto; min-height: 0; }
+      .container { padding: 12px; border-radius: 20px; }
+      .container-title { font-size: 14px; margin-bottom: 8px; }
+      .menu .chat-messages, .preview .chat-messages { display: none; }
+      .message-input { padding: 12px 16px; font-size: 16px; }
+      .send-button, .file-button { width: 48px; height: 48px; }
+      .send-button::before { font-size: 24px; }
+      .header { display: -webkit-box; gap: 12px; padding: 10px 16px; }
+      .menu-icon { font-size: 25px; cursor: pointer; margin-top: -2px; }
+      .header-title { position: relative; font-size: 20px; font-weight: 600; margin-top: 8px; margin-left: 16px; }
+      .header-title::before { content:""; position:absolute; left:-10px; top:37%; transform:translateY(-50%); width:2px; height:60%; background:rgba(255,255,255,0.2); border-radius:2px; }
     }
 
     @media(max-width:480px) {
-      .root {
-        padding: 4px;
-        height: calc(100vh - 8px);
-        width: calc(100vw - 8px);
-        gap: 6px;
-      }
-
-      .menu,
-      .preview {
-        height: 100px;
-      }
-
-      .container {
-        padding: 10px;
-        border-radius: 16px;
-      }
-
-      .container-title {
-        font-size: 13px;
-      }
-
-      .input-area {
-        gap: 8px;
-      }
-
-      .message-input {
-        padding: 12px 14px;
-      }
-
-      .message {
-        max-width: 90%;
-        font-size: 14px;
-        padding: 10px 14px;
-      }
+      .root { padding: 4px; height: calc(100vh - 8px); width: calc(100vw - 8px); gap: 6px; }
+      .menu, .preview { height: 100px; }
+      .container { padding: 10px; border-radius: 16px; }
+      .container-title { font-size: 13px; }
+      .input-area { gap: 8px; }
+      .message-input { padding: 12px 14px; }
+      .message { max-width: 90%; font-size: 14px; padding: 10px 14px; }
     }
 
-    .overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(4px);
-      opacity: 0;
-      pointer-events: none;
-      transition: 0.3s;
-      z-index: 90;
-    }
-
-    .overlay.active {
-      opacity: 1;
-      pointer-events: all;
-    }
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: 0.3s; z-index: 90; }
+    .overlay.active { opacity: 1; pointer-events: all; }
 
     @media(max-width:1250px) {
-      .menu {
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100%;
-        width: 85%;
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-        z-index: 100;
-        display: flex !important;
-      }
-
-      .menu.active {
-        transform: translateX(0);
-      }
+      .menu { position:fixed; top:0; left:0; height:100%; width:85%; transform:translateX(-100%); transition:transform 0.3s ease; z-index:100; display:flex !important; }
+      .menu.active { transform: translateX(0); }
     }
 
     @-moz-document url-prefix() {
-      .root {
-        height: 100vh;
-      }
-
-      .header-title {
-        margin-left: 4px;
-        margin-top: 7px;
-      }
-
-      .header-title::before {
-        height: 19px;
-        top: 12px;
-      }
-
-      .container::before {
-        content: none;
-      }
+      .root { height: 100vh; }
+      .header-title { margin-left: 4px; margin-top: 3px; }
+      .header-title::before { height: 19px; top: 13px; }
+      .container::before { content: none; }
     }
 
     .new-chat-button {
-      margin-top: 6px;
-      padding: 6.5px;
-      width: 100%;
-      height: 32px;
-      text-align: left;
-      border-radius: 4px;
-      font-size: 14px;
-      font-weight: 500;
-      color: white;
-      background: rgba(255, 255, 255, 0.08);
-      border: none;
-      cursor: pointer;
-      backdrop-filter: blur(10px);
-      transition: all 0.2s ease;
+      margin-top: 6px; padding: 6.5px; width: 100%; height: 32px;
+      text-align: left; border-radius: 4px; font-size: 14px; font-weight: 500;
+      color: white; background: rgba(255,255,255,0.08); border: none; cursor: pointer;
+      backdrop-filter: blur(10px); transition: all 0.2s ease;
     }
 
-    .new-chat-button:hover {
-      background: rgba(255, 255, 255, 0.15);
-      transform: translateY(-1px);
-    }
+    .new-chat-button:hover { background: rgba(255,255,255,0.15); transform: translateY(-1px); }
+    .new-chat-button:last-of-type { margin-bottom: 6px; }
 
-    .new-chat-button:last-of-type {
-      margin-bottom: 6px;
-    }
+    .chat-list { display: flex; flex-direction: column; gap: 8px; max-height: calc(100% - 80px); overflow-y: auto; }
 
-    .chat-list {
-      display: flex;
+    .chat-item { border-radius: 4px; padding: 6.5px; background: rgba(255,255,255,0.05); color: white; font-size: 14px; cursor: pointer; transition: all 0.2s ease; }
+    .chat-item:hover { background: rgba(255,255,255,0.12); }
+    .chat-item.active-chat { background: rgba(255,255,255,0.15); border-left: 2px solid rgba(255,255,255,0.5); }
+
+    /* AI actions */
+    .ai-message-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .action-btn { padding: 5px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.85); font-size: 12px; cursor: pointer; transition: all 0.2s ease; }
+    .action-btn:hover { background: rgba(255,255,255,0.2); }
+
+    /* Desktop preview panel */
+    .preview-close-btn { background: transparent; border: none; color: rgba(255,255,255,0.5); font-size: 18px; cursor: pointer; padding: 0 4px; line-height: 1; transition: color 0.2s; }
+    .preview-close-btn:hover { color: rgba(255,255,255,0.9); }
+    .preview-iframe-wrap { flex: 1; border-radius: 12px; overflow: hidden; background: #fff; }
+    .preview-iframe-wrap iframe { width: 100%; height: 100%; border: none; display: block; }
+    .preview-toolbar { display: flex; gap: 8px; margin-bottom: 10px; }
+    .preview-toolbar-btn { padding: 5px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.85); font-size: 12px; cursor: pointer; transition: all 0.2s ease; }
+    .preview-toolbar-btn:hover { background: rgba(255,255,255,0.2); }
+
+    /* ── Мобильная модалка предпросмотра ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(6px);
       flex-direction: column;
+      padding: 12px;
+      gap: 10px;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal-toolbar {
+      display: flex;
       gap: 8px;
-      max-height: calc(100% - 80px);
-      overflow-y: auto;
+      align-items: center;
+      flex-shrink: 0;
     }
 
-    .chat-item {
-      border-radius: 4px;
-      padding: 6.5px;
-      background: rgba(255, 255, 255, 0.05);
-      color: white;
-      font-size: 14px;
+    .modal-close-btn {
+      margin-left: auto;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.85);
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 8px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: background 0.2s;
+    }
+    .modal-close-btn:hover { background: rgba(255,255,255,0.2); }
+
+    .modal-iframe-wrap {
+      flex: 1;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .modal-iframe-wrap iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
     }
 
-    .chat-item:hover {
-      background: rgba(255, 255, 255, 0.12);
-    }
+    /* Code review */
+    .code-review-block { margin-top: 10px; padding: 10px; border-radius: 10px; background: rgba(0,0,0,0.25); font-size: 12px; line-height: 1.5; }
+    .cr-section { margin-bottom: 6px; }
+    .cr-label { font-weight: 600; margin-bottom: 2px; }
+    .cr-label.critical { color: #ff7878; }
+    .cr-label.warnings  { color: #ffc878; }
+    .cr-label.info      { color: #78c8ff; }
+    .cr-item { padding-left: 10px; opacity: 0.85; }
+
+    /* File badge */
+    .file-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 8px; }
+    .file-badge button { background: transparent; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 13px; padding: 0; line-height: 1; }
+    .file-badge button:hover { color: rgba(255,255,255,0.9); }
+
+    /* Step badges */
+    .step-badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; margin-bottom: 6px; font-weight: 600; }
+    .step-parse  { background: rgba(120,120,255,0.3); color: #b0b0ff; }
+    .step-gen    { background: rgba(80,200,120,0.25); color: #80e0a0; }
+    .step-error  { background: rgba(255,80,80,0.3);   color: #ff9898; }
   </style>
 </head>
 
@@ -462,233 +340,483 @@
 
     <div class="menu container">
       <div class="container-title">MistralProto</div>
-
       <p>Чаты</p>
-      <button class="new-chat-button">✅ Создать новый чат</button>
+      <button class="new-chat-button" id="newChatButton">✅ Создать новый чат</button>
       <button id="exitChatButton" class="new-chat-button">🚪 Выйти из чата</button>
-      <div class="chat-list"></div>
+      <div class="chat-list" id="chatList"></div>
     </div>
 
     <div class="work-with-ai container">
       <div class="chat-messages" id="chatMessages">
         <p class="start-message">Привет! Что будем делать<br>сегодня? Создай новый чат!</p>
       </div>
+      <div id="fileBadgeArea" style="display:none; padding: 0 0 8px 0;"></div>
       <div class="input-area">
-        <input type="text" id="messageInput" placeholder="Напиши сообщение..." class="message-input" autocomplete="off">
-        <button class="file-button" aria-label="Выбрать файл">
+        <input type="text" id="messageInput" placeholder="Опиши бизнес-требования..." class="message-input" autocomplete="off">
+        <input type="file" id="fileInput" accept=".txt,.pdf,.docx" style="display:none">
+        <button class="file-button" id="fileButton" aria-label="Выбрать файл">
           <img src="./icons/file.png" height="24px">
         </button>
         <button id="sendButton" class="send-button" aria-label="Отправить"></button>
       </div>
     </div>
 
-    <div class="preview container">
-      <div class="container-title">Предпросмотр</div>
+    <!-- Desktop preview panel -->
+    <div class="preview container" id="previewPanel">
+      <div class="container-title">
+        <span>Предпросмотр</span>
+        <button class="preview-close-btn" id="previewCloseBtn" title="Закрыть">✕</button>
+      </div>
+      <div class="preview-toolbar">
+        <button class="preview-toolbar-btn" id="saveHtmlBtn">💾 Сохранить HTML</button>
+        <button class="preview-toolbar-btn" id="retryBtn" style="display:none">🔄 Исправить</button>
+      </div>
+      <div class="preview-iframe-wrap">
+        <iframe id="previewIframe" sandbox="allow-scripts allow-same-origin"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile modal preview -->
+  <div class="modal-overlay" id="mobileModal">
+    <div class="modal-toolbar">
+      <button class="preview-toolbar-btn" id="mobileSaveBtn">💾 Сохранить HTML</button>
+      <button class="preview-toolbar-btn" id="mobileRetryBtn" style="display:none">🔄 Исправить</button>
+      <button class="modal-close-btn" id="mobileCloseBtn">✕ Закрыть</button>
+    </div>
+    <div class="modal-iframe-wrap">
+      <iframe id="mobileIframe" sandbox="allow-scripts allow-same-origin"></iframe>
     </div>
   </div>
 
   <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const menu = document.querySelector(".menu");
-  const overlay = document.getElementById("overlay");
-  const menuIcon = document.querySelector(".menu-icon");
-  const chatMessages = document.getElementById("chatMessages");
-  const messageInput = document.getElementById("messageInput");
-  const sendButton = document.getElementById("sendButton");
-  const newChatButton = document.querySelector(".new-chat-button");
-  const chatList = document.querySelector(".chat-list");
+const API_BASE = "http://localhost:3001";
 
-  let chats = JSON.parse(localStorage.getItem("chats")) || [];
-  let activeChatId = localStorage.getItem("activeChatId");
+document.addEventListener("DOMContentLoaded", () => {
+  const menu           = document.querySelector(".menu");
+  const overlay        = document.getElementById("overlay");
+  const menuIcon       = document.querySelector(".menu-icon");
+  const chatMessages   = document.getElementById("chatMessages");
+  const messageInput   = document.getElementById("messageInput");
+  const sendButton     = document.getElementById("sendButton");
+  const newChatButton  = document.getElementById("newChatButton");
+  const exitChatButton = document.getElementById("exitChatButton");
+  const chatListEl     = document.getElementById("chatList");
+  const fileInput      = document.getElementById("fileInput");
+  const fileButton     = document.getElementById("fileButton");
+  const fileBadgeArea  = document.getElementById("fileBadgeArea");
+  const previewPanel   = document.getElementById("previewPanel");
+  const previewIframe  = document.getElementById("previewIframe");
+  const previewCloseBtn= document.getElementById("previewCloseBtn");
+  const saveHtmlBtn    = document.getElementById("saveHtmlBtn");
+  const retryBtn       = document.getElementById("retryBtn");
+  // mobile modal
+  const mobileModal    = document.getElementById("mobileModal");
+  const mobileIframe   = document.getElementById("mobileIframe");
+  const mobileCloseBtn = document.getElementById("mobileCloseBtn");
+  const mobileSaveBtn  = document.getElementById("mobileSaveBtn");
+  const mobileRetryBtn = document.getElementById("mobileRetryBtn");
+
+  let chats        = JSON.parse(localStorage.getItem("chats") || "[]");
+  let activeChatId = localStorage.getItem("activeChatId") || null;
+  let isLoading    = false;
+  let uploadedFile = null;
+  let currentSpec  = null;
+  let currentHtml  = null;
+  let currentReview= null;
 
   function saveChats() {
     localStorage.setItem("chats", JSON.stringify(chats));
-    localStorage.setItem("activeChatId", activeChatId);
+    localStorage.setItem("activeChatId", activeChatId || "");
   }
 
-  function showMenu() {
-    menu.classList.add("active");
-    overlay.classList.add("active");
-  }
+  function isMobile() { return window.innerWidth <= 1250; }
 
-  function hideMenu() {
-    menu.classList.remove("active");
-    overlay.classList.remove("active");
-  }
-
+  // ── Menu ──────────────────────────────────────────────────────────────────
+  function showMenu() { menu.classList.add("active"); overlay.classList.add("active"); }
+  function hideMenu() { menu.classList.remove("active"); overlay.classList.remove("active"); }
   if (menuIcon) menuIcon.addEventListener("click", showMenu);
-  if (overlay) overlay.addEventListener("click", hideMenu);
+  if (overlay)  overlay.addEventListener("click",  hideMenu);
 
-  function addMessage(text, isUser = false) {
-    if (!activeChatId) return;
-    const msg = { text, isUser, time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) };
-    const chat = chats.find(c => c.id === activeChatId);
-    chat.messages.push(msg);
-    saveChats();
-    renderMessages(chat);
+  // ── Preview ───────────────────────────────────────────────────────────────
+  function showPreview(html) {
+    if (isMobile()) {
+      // Мобилка — открываем модалку
+      mobileIframe.srcdoc = html;
+      mobileModal.classList.add("active");
+      mobileRetryBtn.style.display = (currentReview?.report) ? "inline-block" : "none";
+    } else {
+      // Десктоп — боковая панель
+      previewIframe.srcdoc = html;
+      previewPanel.classList.add("visible");
+      retryBtn.style.display = (currentReview?.report) ? "inline-block" : "none";
+    }
   }
 
-  function renderMessages(chat) {
-  chatMessages.innerHTML = "";
-  if (!chat || chat.messages.length === 0) {
-    const nameText = chat?.name ? `в "${chat.name}"` : "";
-    chatMessages.innerHTML = `<p class="start-message">Чем займемся<br> ${nameText}?</p>`;
-  } else {
-    chat.messages.forEach(msg => {
-      const div = document.createElement("div");
-      div.className = `message ${msg.isUser ? "user-message" : "ai-message"}`;
-      div.innerHTML = `<div>${msg.text}</div><div style="font-size:11px;opacity:0.6;margin-top:6px;">${msg.time}</div>`;
-      chatMessages.appendChild(div);
-    });
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+  function hidePreview() {
+    previewPanel.classList.remove("visible");
+    previewIframe.srcdoc = "";
   }
-}
 
+  function hideMobileModal() {
+    mobileModal.classList.remove("active");
+    mobileIframe.srcdoc = "";
+  }
+
+  previewCloseBtn.addEventListener("click", hidePreview);
+  mobileCloseBtn.addEventListener("click",  hideMobileModal);
+
+  // ── Save ──────────────────────────────────────────────────────────────────
+  async function doSave() {
+    if (!currentHtml) { appendAiMessage("⚠️ Нет HTML для сохранения.", "error"); return; }
+    try {
+      const res  = await fetch(`${API_BASE}/api/save`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ html: currentHtml, projectName: currentSpec?.project_name }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Save failed");
+      appendAiMessage(`💾 Сохранено: <code>${data.filename}</code>`);
+    } catch(e) { appendAiMessage("❌ Ошибка сохранения: " + e.message, "error"); }
+  }
+  saveHtmlBtn.addEventListener("click",  doSave);
+  mobileSaveBtn.addEventListener("click", doSave);
+
+  // ── Retry ─────────────────────────────────────────────────────────────────
+  async function doRetry() {
+    if (!currentSpec || !currentHtml || !currentReview?.report) return;
+    const userContext = prompt("Дополнительные комментарии (опционально):", "") ?? "";
+    if (isMobile()) hideMobileModal();
+    setLoading(true);
+    const retryDisplayText = userContext
+      ? `🔄 Исправить по code review: ${userContext}`
+      : "🔄 Запустить code review";
+    appendUserMessage(retryDisplayText);
+    try {
+      showTyping("Исправляю...");
+      const res  = await fetch(`${API_BASE}/api/retry`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: currentSpec.description || "Исправить по результатам code review",
+          spec: currentSpec,
+          report: currentReview.report,
+          userContext: userContext || undefined,
+          currentHtml,
+          changes: currentReview.changes,
+        }),
+      });
+      const data = await res.json();
+      hideTyping();
+      if (!res.ok) throw new Error(data.error || "Retry failed");
+      currentSpec = data.spec; currentHtml = data.html; currentReview = data.codeReview;
+      appendAiResult(data);
+      saveChats();
+    } catch(e) {
+      hideTyping();
+      appendAiMessage("❌ " + e.message, "error");
+    } finally { setLoading(false); }
+  }
+  retryBtn.addEventListener("click",       doRetry);
+  mobileRetryBtn.addEventListener("click", doRetry);
+
+  // ── File upload ───────────────────────────────────────────────────────────
+  fileButton.addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", async () => {
+    const file = fileInput.files[0]; if (!file) return; fileInput.value = "";
+    const formData = new FormData(); formData.append("file", file);
+    try {
+      const res  = await fetch(`${API_BASE}/api/upload`, { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Upload failed");
+      uploadedFile = { name: data.filename, content: data.content };
+      renderFileBadge();
+    } catch(e) { appendAiMessage("❌ Ошибка загрузки: " + e.message, "error"); }
+  });
+
+  function renderFileBadge() {
+    if (!uploadedFile) { fileBadgeArea.style.display = "none"; fileBadgeArea.innerHTML = ""; return; }
+    fileBadgeArea.style.display = "block";
+    fileBadgeArea.innerHTML = `<div class="file-badge">📄 ${esc(uploadedFile.name)}<button onclick="window._removeFile()" title="Убрать">✕</button></div>`;
+  }
+  window._removeFile = () => { uploadedFile = null; renderFileBadge(); };
+
+  // ── Chat list ─────────────────────────────────────────────────────────────
   function renderChatList() {
-  chatList.innerHTML = "";
-  chats.forEach(chat => {
-    const chatItem = document.createElement("div");
-    chatItem.className = "chat-item";
-    chatItem.textContent = chat.name;
-    chatItem.style.position = "relative";
+    chatListEl.innerHTML = "";
+    chats.forEach(chat => {
+      const el = document.createElement("div");
+      el.className = "chat-item" + (chat.id === activeChatId ? " active-chat" : "");
+      el.style.position = "relative";
+      el.textContent = chat.name;
 
-    const renameBtn = document.createElement("button");
-    renameBtn.textContent = "✏️";
-    renameBtn.style.position = "absolute";
-    renameBtn.style.right = "30px";
-    renameBtn.style.top = "50%";
-    renameBtn.style.transform = "translateY(-50%)";
-    renameBtn.style.display = "none";
-    renameBtn.style.border = "none";
-    renameBtn.style.background = "transparent";
-    renameBtn.style.cursor = "pointer";
+      const rBtn = mkBtn("✏️", "30px");
+      const dBtn = mkBtn("🗑️", "5px");
+      [rBtn, dBtn].forEach(b => b.style.display = "none");
 
-    const deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "🗑️";
-    deleteBtn.style.position = "absolute";
-    deleteBtn.style.right = "5px";
-    deleteBtn.style.top = "50%";
-    deleteBtn.style.transform = "translateY(-50%)";
-    deleteBtn.style.display = "none";
-    deleteBtn.style.border = "none";
-    deleteBtn.style.background = "transparent";
-    deleteBtn.style.cursor = "pointer";
+      el.addEventListener("mouseenter", () => { rBtn.style.display = "inline"; dBtn.style.display = "inline"; });
+      el.addEventListener("mouseleave", () => { rBtn.style.display = "none";   dBtn.style.display = "none"; });
+      el.addEventListener("touchstart", () => { rBtn.style.display = "inline"; dBtn.style.display = "inline"; });
 
-    chatItem.addEventListener("mouseenter", () => {
-      renameBtn.style.display = "inline";
-      deleteBtn.style.display = "inline";
+      el.addEventListener("click", () => {
+        activeChatId = chat.id;
+        saveChats();
+        currentSpec = null; currentHtml = null; currentReview = null;
+        renderMessages(chats.find(c => c.id === chat.id));
+        if (window.innerWidth <= 1250) hideMenu();
+      });
+
+      rBtn.addEventListener("click", e => {
+        e.stopPropagation();
+        const n = prompt("Новое название чата:", chat.name);
+        if (!n) return;
+        chat.name = n; saveChats(); renderChatList();
+      });
+
+      dBtn.addEventListener("click", e => {
+        e.stopPropagation();
+        if (!confirm(`Удалить чат "${chat.name}"?`)) return;
+        if (activeChatId === chat.id) {
+          activeChatId = null;
+          showWelcome();
+          hidePreview();
+          hideMobileModal();
+        }
+        chats = chats.filter(c => c.id !== chat.id);
+        saveChats(); renderChatList();
+      });
+
+      el.appendChild(rBtn); el.appendChild(dBtn); chatListEl.appendChild(el);
     });
-    chatItem.addEventListener("mouseleave", () => {
-      renameBtn.style.display = "none";
-      deleteBtn.style.display = "none";
-    });
+  }
 
-    // для тач устройств показываем кнопки всегда
-    chatItem.addEventListener("touchstart", () => {
-      renameBtn.style.display = "inline";
-      deleteBtn.style.display = "inline";
-    });
+  function mkBtn(icon, right) {
+    const b = document.createElement("button");
+    b.textContent = icon;
+    b.style.cssText = `position:absolute;right:${right};top:50%;transform:translateY(-50%);border:none;background:transparent;cursor:pointer;`;
+    return b;
+  }
 
-    chatItem.addEventListener("click", () => {
-      activeChatId = chat.id;
-      saveChats();
-      renderMessages(chat);
-      if (window.innerWidth <= 1250) hideMenu(); // чтобы меню скрылось после выбора на телефоне
-    });
-
-    renameBtn.addEventListener("click", e => {
-      e.stopPropagation();
-      const newName = prompt("Новое название чата:", chat.name);
-      if (!newName) return;
-      chat.name = newName;
-      saveChats();
-      renderChatList();
-    });
-
-    deleteBtn.addEventListener("click", e => {
-  e.stopPropagation();
-  if (!confirm(`Удалить чат "${chat.name}"?`)) return;
-
-  if (activeChatId === chat.id) {
-    activeChatId = null;
+  // ── Welcome screen ────────────────────────────────────────────────────────
+  function showWelcome() {
     chatMessages.innerHTML = `<p class="start-message">Привет! Что будем делать<br>сегодня? Создай новый чат!</p>`;
   }
 
-  chats = chats.filter(c => c.id !== chat.id);
-  saveChats();
-  renderChatList();
-});
-
-    chatItem.appendChild(renameBtn);
-    chatItem.appendChild(deleteBtn);
-    chatList.appendChild(chatItem);
-  });
-}
-
-function sendMessage() {
-  let text = messageInput.value.trim();
-  if (!text) return;
-
-  // если нет активного чата — создаем автоматически
-  if (!activeChatId) {
-    const chatName = `Новый чат ${chats.length + 1}`;
-    const id = Date.now().toString();
-    const newChat = { id, name: chatName, messages: [] };
-    chats.push(newChat);
-    activeChatId = id;
-    saveChats();
-    renderChatList();
+  // ── Render messages ───────────────────────────────────────────────────────
+  function renderMessages(chat) {
+    chatMessages.innerHTML = "";
+    if (!chat || chat.messages.length === 0) {
+      const nameText = chat?.name ? `в "${esc(chat.name)}"` : "";
+      chatMessages.innerHTML = `<p class="start-message">Чем займемся<br>${nameText}?</p>`;
+    } else {
+      chat.messages.forEach(appendRenderedMessage);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
   }
 
-  // теперь точно есть активный чат
-  addMessage(text, true);
-  messageInput.value = "";
+  function appendRenderedMessage(msg) {
+    const div = document.createElement("div");
+    div.className = `message ${msg.isUser ? "user-message" : "ai-message"}${msg.isError ? " error-message" : ""}`;
+    let inner = `<div>${msg.text}</div>`;
+    if (!msg.isUser && msg.codeReview?.report) inner += buildCRHtml(msg.codeReview.report);
+    if (!msg.isUser && msg.html) {
+      inner += `<div class="ai-message-actions"><button class="action-btn" onclick="window._previewMsg('${msg.id}')">👁 Предпросмотр</button></div>`;
+    }
+    inner += `<div style="font-size:11px;opacity:0.6;margin-top:6px;">${msg.time}</div>`;
+    div.innerHTML = inner;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
 
-  setTimeout(() => {
-    const responses = ["Понял задачу! 🎯", "Уже делаю 💪", "Реализую через glassmorphism... ✨"];
-    addMessage(responses[Math.floor(Math.random() * responses.length)]);
-  }, 800);
-};
+  window._previewMsg = function(msgId) {
+    const chat = chats.find(c => c.id === activeChatId); if (!chat) return;
+    const msg = chat.messages.find(m => m.id === msgId); if (!msg?.html) return;
+    currentHtml = msg.html; currentSpec = msg.spec || null; currentReview = msg.codeReview || null;
+    showPreview(msg.html);
+  };
 
-  function createNewChat(name = null) {
-    const chatName = name || prompt("Название нового чата:", `Новый чат ${chats.length + 1}`);
+  function buildCRHtml(cr) {
+    let h = `<div class="code-review-block">`;
+    if (cr.critical?.length) { h += `<div class="cr-section"><div class="cr-label critical">🚨 Критические (${cr.critical.length})</div>`; cr.critical.forEach(i => { h += `<div class="cr-item">• ${esc(i)}</div>`; }); h += `</div>`; }
+    if (cr.warnings?.length) { h += `<div class="cr-section"><div class="cr-label warnings">⚠️ Предупреждения (${cr.warnings.length})</div>`; cr.warnings.forEach(i => { h += `<div class="cr-item">• ${esc(i)}</div>`; }); h += `</div>`; }
+    if (cr.info?.length)     { h += `<div class="cr-section"><div class="cr-label info">ℹ️ Информация (${cr.info.length})</div>`; cr.info.forEach(i => { h += `<div class="cr-item">• ${esc(i)}</div>`; }); h += `</div>`; }
+    return h + `</div>`;
+  }
+
+  // ── Typing indicator ──────────────────────────────────────────────────────
+  let typingEl = null;
+  function showTyping(label) {
+    const welcome = chatMessages.querySelector(".start-message");
+    if (welcome) welcome.remove();
+    typingEl = document.createElement("div");
+    typingEl.className = "typing-indicator";
+    typingEl.innerHTML = `<span></span><span></span><span></span>${label ? `<span class="typing-label">${label}</span>` : ""}`;
+    chatMessages.appendChild(typingEl);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+  function hideTyping() { if (typingEl) { typingEl.remove(); typingEl = null; } }
+
+  // ── Loading state ─────────────────────────────────────────────────────────
+  function setLoading(v) {
+    isLoading = v;
+    sendButton.disabled = v; messageInput.disabled = v; fileButton.disabled = v;
+    sendButton.classList.toggle("loading", v);
+  }
+
+  // ── Append helpers ────────────────────────────────────────────────────────
+  function appendUserMessage(text) {
+    const welcome = chatMessages.querySelector(".start-message");
+    if (welcome) welcome.remove();
+    const msg = { id: uid(), text: esc(text).replace(/\n/g, "<br>"), isUser: true, time: now() };
+    addToActiveChat(msg);
+    appendRenderedMessage(msg);
+  }
+
+  function appendAiMessage(htmlText, type) {
+    const msg = { id: uid(), text: htmlText, isUser: false, time: now(), isError: type === "error" };
+    addToActiveChat(msg);
+    appendRenderedMessage(msg);
+  }
+
+  function appendAiResult(data) {
+    const specName = data.spec?.project_name || "Готово";
+    const screens  = data.spec?.screens?.length || 0;
+    let text = `<span class="step-badge step-gen">✅ Сгенерировано</span><br><strong>${esc(specName)}</strong>`;
+    if (screens) text += ` · ${screens} экран${screens > 1 ? (screens < 5 ? "а" : "ов") : ""}`;
+
+    const msg = { id: uid(), text, isUser: false, time: now(), html: data.html, spec: data.spec, codeReview: data.codeReview };
+    addToActiveChat(msg);
+    appendRenderedMessage(msg);
+
+    currentHtml = data.html; currentSpec = data.spec; currentReview = data.codeReview;
+    showPreview(data.html);
+
+    const chat = chats.find(c => c.id === activeChatId);
+    if (chat && data.spec?.project_name) {
+      chat.name = data.spec.project_name.slice(0, 40);
+      saveChats();
+      renderChatList();
+    }
+  }
+
+  function addToActiveChat(msg) {
+    const chat = chats.find(c => c.id === activeChatId);
+    if (chat) { chat.messages.push(msg); saveChats(); }
+  }
+
+  // ── Send message ──────────────────────────────────────────────────────────
+  async function sendMessage() {
+    if (isLoading) return;
+    const text = messageInput.value.trim();
+    const messageText = uploadedFile
+      ? `${text || "Сгенерируй интерфейс по требованиям"}\n\n--- Документ: ${uploadedFile.name} ---\n${uploadedFile.content}`
+      : text;
+
+    if (!messageText || messageText.trim().length < 10) {
+      appendAiMessage("⚠️ Напиши подробнее (минимум 10 символов).", "error"); return;
+    }
+
+    if (!activeChatId) {
+      const id = Date.now().toString();
+      const newChat = { id, name: `Новый чат ${chats.length + 1}`, messages: [] };
+      chats.push(newChat);
+      activeChatId = id;
+      saveChats();
+      renderChatList();
+    }
+
+    const displayText = uploadedFile ? `📄 ${uploadedFile.name}${text ? ": " + text : ""}` : text;
+    appendUserMessage(displayText);
+    messageInput.value = "";
+    uploadedFile = null; renderFileBadge();
+
+    setLoading(true);
+    try {
+      showTyping("Разбираю требования...");
+      const pRes  = await fetch(`${API_BASE}/api/parse`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: messageText }),
+      });
+      const pData = await pRes.json(); hideTyping();
+      if (!pRes.ok) throw new Error(pData.error || "Parse failed");
+
+      currentSpec = pData.spec;
+      appendAiMessage(
+        `<span class="step-badge step-parse">📋 Спецификация</span><br>` +
+        `<strong>${esc(pData.spec.project_name)}</strong><br>` +
+        `<span style="opacity:0.75;font-size:13px;">${esc(pData.spec.description)}</span>`
+      );
+
+      showTyping("Генерирую интерфейс...");
+      const gRes  = await fetch(`${API_BASE}/api/generate-ui`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ spec: currentSpec }),
+      });
+      const gData = await gRes.json(); hideTyping();
+      if (!gRes.ok) throw new Error(gData.error || "UI generation failed");
+      currentHtml = gData.html;
+
+      showTyping("Проверяю код...");
+      const rRes  = await fetch(`${API_BASE}/api/review`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ html: currentHtml, spec: currentSpec, userMessage: messageText }),
+      });
+      const rData = await rRes.json(); hideTyping();
+      if (!rRes.ok) throw new Error(rData.error || "Review failed");
+      if (rData.fixedHtml) currentHtml = rData.fixedHtml;
+
+      appendAiResult({ spec: currentSpec, html: currentHtml, codeReview: rData.codeReview });
+
+    } catch(e) {
+      hideTyping();
+      appendAiMessage(`<span class="step-badge step-error">❌ Ошибка</span><br>${esc(e.message)}`, "error");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ── New chat / exit ───────────────────────────────────────────────────────
+  function createNewChat() {
+    const chatName = prompt("Название нового чата:", `Новый чат ${chats.length + 1}`);
     if (!chatName) return;
     const id = Date.now().toString();
-    const newChat = { id, name: chatName, messages: [] };
-    chats.push(newChat);
+    chats.push({ id, name: chatName, messages: [] });
     activeChatId = id;
-    saveChats();
-    renderChatList();
-    renderMessages(newChat);
+    currentSpec = null; currentHtml = null; currentReview = null;
+    saveChats(); renderChatList();
+    renderMessages(chats.find(c => c.id === id));
+    hidePreview();
+    hideMobileModal();
   }
 
-  const exitChatButton = document.getElementById("exitChatButton");
+  function exitChat() {
+    activeChatId = null; saveChats();
+    showWelcome();
+    hidePreview();
+    hideMobileModal();
+  }
 
-function exitChat() {
-  activeChatId = null;
-  saveChats();
-  chatMessages.innerHTML = `<p class="start-message">Привет! Что будем делать<br>сегодня? Создай новый чат!</p>`;
-}
-
-exitChatButton.addEventListener("click", exitChat);
-
-  // --- инициализация ---
-// --- инициализация ---
-if (chats.length > 0) {
-    // проверяем, есть ли активный чат
-    let activeChat = chats.find(c => c.id === activeChatId);
-    if (!activeChat) activeChat = chats[0], activeChatId = activeChat.id;
+  // ── Init ──────────────────────────────────────────────────────────────────
+  if (chats.length > 0) {
+    let active = chats.find(c => c.id === activeChatId);
+    if (!active) { active = chats[0]; activeChatId = active.id; }
     renderChatList();
-    renderMessages(activeChat);
-}
+    renderMessages(active);
+  }
 
-  messageInput.addEventListener("keypress", e => { if (e.key === "Enter") sendMessage(); });
+  messageInput.addEventListener("keypress", e => { if (e.key === "Enter" && !e.shiftKey) sendMessage(); });
   sendButton.addEventListener("click", sendMessage);
   messageInput.focus();
+  newChatButton.addEventListener("click",  createNewChat);
+  exitChatButton.addEventListener("click", exitChat);
 
-  newChatButton.addEventListener("click", () => createNewChat());
+  // ── Utils ─────────────────────────────────────────────────────────────────
+  function esc(s) { return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36); }
+  function now() { return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
 });
-</script>
+  </script>
 </body>
 
 </html>
