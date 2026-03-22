@@ -8,16 +8,25 @@
   "main": "src/main.ts",
   "scripts": {
     "start": "tsx src/main.ts",
+    "api": "tsx src/api.ts",
+    "db:migrate": "tsx src/db/migrate.ts",
     "test": "node --import tsx --test src/tests/pipeline.test.ts"
   },
   "dependencies": {
     "@mistralai/mistralai": "^1.15.1",
+    "pg": "^8.13.0",
+    "@types/express": "^5.0.6",
+    "cors": "^2.8.5",
     "dotenv": "^17.3.1",
+    "express": "^4.21.0",
+    "multer": "^2.0.0",
     "mammoth": "^1.12.0",
     "pdf-parse": "^2.4.5",
     "prompt-sync": "^4.2.0"
   },
   "devDependencies": {
+    "@types/multer": "^1.4.12",
+    "@types/pg": "^8.11.10",
     "@types/node": "^25.5.0",
     "@types/prompt-sync": "^4.2.3",
     "tsx": "^4.21.0"

@@ -8,8 +8,7 @@ import { isBRSpec } from "../types.js";
 export interface PipelineOptions {
     spec?: BRSpec;
     retryContext?: UIGeneratorRetryContext;
-    skipServer?: boolean;
-}
+    skipServer?: boolean;}
 
 export interface PipelineResult {
     codeReview: CodeReviewResult;
