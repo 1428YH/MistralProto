@@ -25,6 +25,7 @@
     "prompt-sync": "^4.2.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/multer": "^1.4.12",
     "@types/pg": "^8.11.10",
     "@types/node": "^25.5.0",

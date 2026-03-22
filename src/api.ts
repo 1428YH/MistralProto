@@ -46,7 +46,7 @@ app.use(express.json({ limit: "100kb" }));
 
 let _pool: import("pg").Pool | null = null;
 app.use((req, _res, next) => {
-    req.pool = _pool ?? undefined;
+    if (_pool) req.pool = _pool;
     next();
 });
 
@@ -69,6 +69,10 @@ function apiError(
     console.error("[API] Error:", err);
     const message = err instanceof Error ? err.message : "Internal server error";
     res.status(500).json({ error: message });
+}
+
+function strParam(val: unknown): string | null {
+    return typeof val === "string" ? val : null;
 }
 
 function validateMessage(
@@ -116,7 +120,12 @@ app.get("/api/sessions/:id", async (req: Request, res: Response) => {
         res.status(503).json({ error: "Database not configured" });
         return;
     }
-    const session = await db.getSession(pool, req.params.id);
+    const id = strParam(req.params.id);
+    if (!id) {
+        res.status(400).json({ error: "Invalid session id" });
+        return;
+    }
+    const session = await db.getSession(pool, id);
     if (!session) {
         res.status(404).json({ error: "Session not found" });
         return;
@@ -132,7 +141,11 @@ app.post("/api/sessions/:sessionId/dialogues", async (req: Request, res: Respons
         res.status(503).json({ error: "Database not configured" });
         return;
     }
-    const { sessionId } = req.params;
+    const sessionId = strParam(req.params.sessionId);
+    if (!sessionId) {
+        res.status(400).json({ error: "Invalid session id" });
+        return;
+    }
     const { title } = req.body as { title?: string };
     const session = await db.getSession(pool, sessionId);
     if (!session) {
@@ -149,7 +162,11 @@ app.get("/api/sessions/:sessionId/dialogues", async (req: Request, res: Response
         res.status(503).json({ error: "Database not configured" });
         return;
     }
-    const { sessionId } = req.params;
+    const sessionId = strParam(req.params.sessionId);
+    if (!sessionId) {
+        res.status(400).json({ error: "Invalid session id" });
+        return;
+    }
     const session = await db.getSession(pool, sessionId);
     if (!session) {
         res.status(404).json({ error: "Session not found" });
@@ -165,8 +182,12 @@ app.get("/api/dialogues/:id", async (req: Request, res: Response) => {
         res.status(503).json({ error: "Database not configured" });
         return;
     }
-    const { id } = req.params;
-    const sessionId = req.query.session_id as string | undefined;
+    const id = strParam(req.params.id);
+    if (!id) {
+        res.status(400).json({ error: "Invalid dialogue id" });
+        return;
+    }
+    const sessionId = typeof req.query.session_id === "string" ? req.query.session_id : undefined;
     const dialogue = await db.getDialogue(pool, id, sessionId);
     if (!dialogue) {
         res.status(404).json({ error: "Dialogue not found" });
@@ -182,7 +203,11 @@ app.post("/api/dialogues/:id/send", async (req: Request, res: Response) => {
         res.status(503).json({ error: "Database not configured" });
         return;
     }
-    const { id: dialogueId } = req.params;
+    const dialogueId = strParam(req.params.id);
+    if (!dialogueId) {
+        res.status(400).json({ error: "Invalid dialogue id" });
+        return;
+    }
     const { message, spec, retryContext } = req.body as {
         message?: unknown;
         spec?: import("./types.js").BRSpec;
@@ -341,7 +366,10 @@ app.post("/api/review", async (req: Request, res: Response) => {
         return;
     }
 
-    const codeReview = await runCODEREVIEW(html, { spec, userMessage });
+    const codeReview = await runCODEREVIEW(html, {
+        spec,
+        ...(userMessage !== undefined && userMessage !== "" && { userMessage }),
+    });
     if (!codeReview) {
         res.status(500).json({ error: "Code review failed" });
         return;
