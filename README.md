@@ -1,3 +1,4 @@
+<img src="img.jpg"></img>
 # MistralProto
 
 Генерация UI-прототипов из описания требований с помощью Mistral AI.
