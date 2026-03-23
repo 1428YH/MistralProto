@@ -15,16 +15,16 @@ npm install
 Создай файл `.env` в корне проекта:
 
 ```env
-MISTRAL_KEY=твой_api_ключ_mistral
+MISTRAL_KEY=QWERTYEXAMPLE
 ```
 
 Опционально:
 
 ```env
-MISTRAL_MODEL=mistral-small-latest   # модель по умолчанию
-API_PORT=3001                        # порт API
-SERVER_PORT=3000                     # порт превью HTML
-DATABASE_URL=postgresql://user:pass@localhost:5432/mistralproto   # PostgreSQL (для сессий и диалогов)
+MISTRAL_MODEL=mistral-small-latest  
+API_PORT=3001                        
+SERVER_PORT=3000                   
+DATABASE_URL=postgresql://user:pass@localhost:5432/mistralproto 
 ```
 
 **PostgreSQL** — для работы сессий и диалогов в API. Схема создаётся автоматически при запуске API или вручную:
@@ -35,14 +35,15 @@ npm run db:migrate
 
 ### 3. Запуск
 
-**CLI (интерактивный режим):**
+**CLI:**
 
 ```bash
 npm start
 ```
-
 Вводи запросы в консоли. Поддерживаются файлы из папки `input/` (.txt, .pdf, .docx).
-
+- `exit` — выход
+- `save` — сохранить последний результат в `output/`
+- Имя файла (например `requirements.txt`) — загрузить текст из `input/`
 ---
 
 **API-сервер:**
@@ -61,16 +62,5 @@ API: `http://localhost:3001` (или порт из `API_PORT`).
 - `GET /api/dialogues/:id?session_id=` — диалог с сообщениями
 - `POST /api/dialogues/:id/send` — отправить сообщение, запустить pipeline, сохранить в БД
 
----
-
-**Тесты:**
-
-```bash
-npm test
-```
-
-## Команды в CLI
-
-- `exit` — выход
-- `save` — сохранить последний результат в `output/`
-- Имя файла (например `requirements.txt`) — загрузить текст из `input/`
+**WEB:**
+`src/frontend/index.html`
