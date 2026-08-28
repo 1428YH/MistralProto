@@ -1,27 +1,27 @@
 <img src="img.jpg"></img>
+
 # MistralProto
 
-Генерация UI-прототипов из описания требований с помощью Mistral AI.
-<br>
-Разработан в рамках мероприятия <a href="https://www.prostospb.team/hackathon-26">ХАКАТОН Сбер X ПРОСТО X ИТМО</a>
+UI prototype generation from requirements descriptions using Mistral AI. <br>
+Developed as part of the <a href="https://www.prostospb.team/hackathon-26">Sber X PROSTO X ITMO Hackathon</a>
 
-## Быстрый старт
+## Quick Start
 
-### 1. Установка зависимостей
+### 1. Install dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Настройка
+### 2. Configuration
 
-Создай файл `.env` в корне проекта:
+Create a `.env` file in the project root:
 
 ```env
 MISTRAL_KEY=QWERTYEXAMPLE
 ```
 
-Опционально:
+Optional:
 
 ```env
 MISTRAL_MODEL=mistral-small-latest  
@@ -30,40 +30,44 @@ SERVER_PORT=3000
 DATABASE_URL=postgresql://user:pass@localhost:5432/mistralproto 
 ```
 
-**PostgreSQL** — для работы сессий и диалогов в API. Схема создаётся автоматически при запуске API или вручную:
+**PostgreSQL** is used to store sessions and dialogues for the API. The database schema is created automatically when the API starts, or can be created manually:
 
 ```bash
 npm run db:migrate
 ```
 
-### 3. Запуск
+### 3. Run
 
 **CLI:**
 
 ```bash
 npm start
 ```
-Вводи запросы в консоли. Поддерживаются файлы из папки `input/` (.txt, .pdf, .docx).
-- `exit` — выход
-- `save` — сохранить последний результат в `output/`
-- Имя файла (например `requirements.txt`) — загрузить текст из `input/`
+
+Enter your requests in the console. Files from the `input/` directory are supported (`.txt`, `.pdf`, `.docx`).
+
+* `exit` — exit the application
+* `save` — save the latest result to `output/`
+* Filename (e.g. `requirements.txt`) — load text from the `input/` directory
+
 ---
 
-**API-сервер:**
+**API Server:**
 
 ```bash
 npm run api
 ```
 
-API: `http://localhost:3001` (или порт из `API_PORT`).
+API: `http://localhost:3001` (or the port specified by `API_PORT`).
 
-**Сессии и диалоги** (при наличии `DATABASE_URL`):
+**Sessions and dialogues** (when `DATABASE_URL` is configured):
 
-- `POST /api/sessions` — создать сессию
-- `POST /api/sessions/:id/dialogues` — создать диалог
-- `GET /api/sessions/:id/dialogues` — список диалогов
-- `GET /api/dialogues/:id?session_id=` — диалог с сообщениями
-- `POST /api/dialogues/:id/send` — отправить сообщение, запустить pipeline, сохранить в БД
+* `POST /api/sessions` — create a session
+* `POST /api/sessions/:id/dialogues` — create a dialogue
+* `GET /api/sessions/:id/dialogues` — get a list of dialogues
+* `GET /api/dialogues/:id?session_id=` — get a dialogue with its messages
+* `POST /api/dialogues/:id/send` — send a message, run the pipeline, and save the result to the database
 
 **WEB:**
+
 `src/frontend/index.html`
